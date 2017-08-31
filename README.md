@@ -1,4 +1,4 @@
-# srve-api
+# mlb-player-api
 
 This is the MLB player api.
 
