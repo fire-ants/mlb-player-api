@@ -1,0 +1,10 @@
+---
+applications:
+- name: mlb-player-api
+  disk_quota: 256M
+  memory: 256M
+  instances: 2
+  command: npm start
+  buildpack: nodejs_buildpack
+  services:
+    - mlb-player-api-mongodb
