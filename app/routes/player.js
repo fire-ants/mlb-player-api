@@ -1,6 +1,7 @@
 const express = require('express');
 
 const Player = require('../models/player');
+const Insight = require('../models/insight');
 
 const router = express.Router();
 
@@ -23,7 +24,6 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  console.log("Body:"+JSON.stringify(req.body));
   const player = new Player();
   player.mlbid = req.body.mlbid;
   player.firstName = req.body.firstName;
@@ -46,12 +46,59 @@ router.post('/', (req, res) => {
 });
 
 router.get('/:mlbid', (req, res) => {
-  Player.findOne({mlbid: req.params.mlbid})
+  Player.findOne({ mlbid: req.params.mlbid })
     .exec((err, player) => {
       if (err || !player) {
         res.sendStatus(404);
       } else {
         res.json(player);
+      }
+    });
+});
+
+
+router.post('/:mlbid/insight', (req, res) => {
+  Player.findOne({ mlbid: req.params.mlbid })
+    .exec((err, player) => {
+      if (err || !player) {
+        res.sendStatus(404);
+      } else {
+        Insight.remove({ player: player.id }, (err) => {
+          const insight = new Insight();
+          insight.player = player.id;
+          insight.findings = [];
+
+          req.body.findings.forEach((element) => {
+            insight.findings.push(element)
+          });
+
+          insight.save((err) => {
+            if (err) {
+              res.status(400).json(err);
+            } else {
+              res.setHeader('Location', `/player/${player.mlbid}/insight/${insight.id})`);
+              res.status(201).json(insight);
+            }
+          });
+        });
+      }
+    });
+});
+
+router.get('/:mlbid/insight', (req, res) => {
+  Player.findOne({ mlbid: req.params.mlbid })
+    .exec((err, player) => {
+      if (err || !player) {
+        res.sendStatus(404);
+      } else {
+        Insight.findOne({ player: player.id })
+          .exec((err, insight) => {
+            if (err || !insight) {
+              res.sendStatus(404);
+            } else {
+              res.json(insight);
+            }
+          });
       }
     });
 });
